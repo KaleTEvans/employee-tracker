@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('./db/connection');
 const apiRoutes = require('./routes/apiRoutes');
+const { startApp } = require('./index');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -8,6 +9,8 @@ const app = express();
 // express middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
+app.use('/api', apiRoutes);
 
 app.use((req, res) => {
     res.status(404).end();
@@ -18,5 +21,6 @@ db.connect(err => {
     console.log('Database connected');
     app.listen(PORT, () => {
         console.log(`Server running on ${PORT}`);
+        startApp();
     });
 });

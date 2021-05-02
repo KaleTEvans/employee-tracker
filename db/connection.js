@@ -12,12 +12,12 @@ const db = mysql.createConnection(
     console.log('Connected to the employee database')
 );
 
-const result = dotenv.config();
+// const result = dotenv.config();
 
-if (result.error) {
-    throw result.error
-}
+// if (result.error) {
+//     throw result.error
+// }
 
-console.log(result.parsed);
+// console.log(result.parsed);
 
 module.exports = db;
