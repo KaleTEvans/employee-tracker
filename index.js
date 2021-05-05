@@ -4,12 +4,14 @@ const cTable = require('console.table');
 const { response } = require('express');
 
 const Employee = require('./utils/employeeObj');
+const EmployeeUpdate = require('./utils/employeeUpdate');
 const pathWay = 'http://localhost:3001/api';
 const departmentArray = [];
-const roleArray = [];
-const rolesArray = [];
-const managerArray = [];
-const managersArray = [];
+let roleArray = [];
+let rolesArray = [];
+let managerArray = [];
+let managersArray = [];
+
 
 const startApp = () => {
     console.log(
@@ -142,7 +144,31 @@ const startApp = () => {
             })
         }
         if (optionSelect === 'Update an employee role') {
-            return employeeUpdate();
+            managerList();
+            roleList();
+            inquirer.prompt([
+                {
+                    type: 'confirm',
+                    name: 'updateConfirm',
+                    message: 'Are you sure you would like to change the role of an employee?',
+                    default: true
+                },
+                {
+                    type: 'list',
+                    name: 'employee',
+                    message: 'Select the employee you would like to update',
+                    choices: managerArray
+                },
+                {
+                    type: 'list',
+                    name: 'role',
+                    message: 'Select the new role',
+                    choices: roleArray
+                }
+            ]).then(({ employee, role }) => {
+                let newRole = new EmployeeUpdate(employee, role, managersArray, rolesArray)
+                employeeUpdate(newRole.getEmployeeId(), newRole.getRoleId());
+            })
         }
     })
 }
@@ -262,6 +288,24 @@ const employeeAdd = (firstName, lastName, roleId, managerId) => {
         console.log(`${content.data.first_name} ${content.data.last_name} added to Employees`);
     })().then(portalFunction)
 };
+
+const employeeUpdate = (employeeId, roleId) => {
+    (async () => {
+        const rawResponse = await fetch(`${pathWay}/employee/${employeeId}`, {
+            method: 'PUT',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                role_id: roleId
+            })
+        });
+    const content = await rawResponse.json();
+
+    console.log(`Role Updated`);
+    })().then(portalFunction)
+}
 
 
 

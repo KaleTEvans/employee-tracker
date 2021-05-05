@@ -14,7 +14,6 @@ class Employee {
 
     getRoleId() {
         this.rolesArray.forEach(role => {
-            //console.log(role.Title);
             if (role.Title === this.role) {
                 this.roleId = role.ID;
             }
