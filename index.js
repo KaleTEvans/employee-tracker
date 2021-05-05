@@ -3,9 +3,13 @@ const fetch = require('node-fetch');
 const cTable = require('console.table');
 const { response } = require('express');
 
-
+const Employee = require('./utils/employeeObj');
 const pathWay = 'http://localhost:3001/api';
 const departmentArray = [];
+const roleArray = [];
+const rolesArray = [];
+const managerArray = [];
+const managersArray = [];
 
 const startApp = () => {
     console.log(
@@ -91,13 +95,51 @@ const startApp = () => {
             })
         }
         if (optionSelect === 'Add an employee') {
+            roleList();
+            managerList();
             inquirer.prompt([
                 {
                     type: 'text',
-                    name: 'employeeName',
-                    message: 'Enter the name of the employee'
+                    name: 'firstName',
+                    message: 'Enter the first name of the employee',
+                    validate: firstName => {
+                        if (firstName) {
+                            return true;
+                        } else {
+                            console.log('Please enter the first name');
+                            return false;
+                        }
+                    }
+                },
+                {
+                    type: 'text',
+                    name: 'lastName',
+                    message: 'Enter the last name of the employee',
+                    validate: lastName => {
+                        if (lastName) {
+                            return true;
+                        } else {
+                            console.log('Please enter a last name');
+                            return false;
+                        }
+                    }
+                },
+                {
+                    type: 'list',
+                    name: 'role',
+                    message: 'Select the role of the employee',
+                    choices: roleArray
+                },
+                {
+                    type: 'list',
+                    name: 'manager',
+                    message: 'Select the manager of the employee',
+                    choices: managerArray
                 }
-            ])
+            ]).then(({ firstName, lastName, role, manager }) => {
+                let employee = new Employee(firstName, lastName, role, rolesArray, manager, managersArray);
+                employeeAdd(firstName, lastName, employee.getRoleId(), employee.getManagerId());
+            })
         }
         if (optionSelect === 'Update an employee role') {
             return employeeUpdate();
@@ -180,7 +222,7 @@ const departmentAdd = (departmentName) => {
 };
 
 const roleAdd = (roleName, roleSalary, departmentId) => {
-    console.log(roleName, roleSalary, departmentId);
+
     (async () => {
         const rawResponse = await fetch(`${pathWay}/role`, {
             method: 'POST',
@@ -200,6 +242,28 @@ const roleAdd = (roleName, roleSalary, departmentId) => {
     })().then(portalFunction)
 };
 
+const employeeAdd = (firstName, lastName, roleId, managerId) => {
+    (async () => {
+        const rawResponse = await fetch(`${pathWay}/employee`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                first_name: firstName,
+                last_name: lastName,
+                role_id: roleId,
+                manager_id: managerId
+            })
+        });
+        const content = await rawResponse.json();
+
+        console.log(`${content.data.first_name} ${content.data.last_name} added to Employees`);
+    })().then(portalFunction)
+};
+
+
 
 // functions to acquire lists for selection
 const departmentList = () => {
@@ -214,7 +278,38 @@ const departmentList = () => {
         json.data.forEach(department => {
             departmentArray.push(department);
         });
-    });
+    })
+};
+
+const roleList = () => {
+    fetch(`${pathWay}/roles`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(res=> res.json())
+    .then(json => {
+        json.data.forEach(role => {
+            roleArray.push(role.Title);
+            rolesArray.push(role);
+        })
+    })
+};
+
+const managerList = () => {
+    fetch(`${pathWay}/employees`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    }).then(res => res.json())
+    .then(json => {
+        json.data.forEach(employee => {
+            managerArray.push(employee.First_Name + ' ' + employee.Last_Name);
+            managersArray.push(employee);
+        })
+    })
 }
 
 module.exports = { startApp };
